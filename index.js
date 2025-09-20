@@ -1,6 +1,7 @@
 import jsonfile from "jsonfile";
 import moment from "moment";
 import simpleGit from "simple-git";
+import random from "random";
 
 const path = "./data.json";
 
@@ -20,35 +21,37 @@ const makeCommit = (date) => {
   });
 };
 
-// Main function to fill the entire year
-const fillYear = async () => {
-  const startDate = moment().year(2023).startOf("year");
-  const endDate = moment().year(2023).endOf("year");
-  const totalDays = endDate.diff(startDate, 'days') + 1;
+// Main function to fill the 2023 contribution graph completely
+const fillContributionGraphSolid = async () => {
+  console.log("Starting to fill the 2023 contribution graph completely...");
 
-  console.log(`Starting to fill ${totalDays} days of 2023 with commits...`);
+  // Start at the beginning of 2023
+  let date = moment().year(2023).startOf("year");
+  const endOfYear = moment().year(2023).endOf("year");
 
-  for (let i = 0; i < totalDays; i++) {
-    const currentDate = moment(startDate).add(i, 'days').format();
+  while (date.isSameOrBefore(endOfYear, 'day')) {
+    // Generate a random number of commits between 5 and 10 to ensure a solid, dark color
+    const commitsForDay = random.int(5, 10);
+    console.log(`Committing ${commitsForDay} times for ${date.format('YYYY-MM-DD')}`);
 
-    // This formula creates a gradient effect from a few commits to more commits per day.
-    const commitsForDay = Math.ceil((i / totalDays) * 9) + 1;
-    
-    console.log(`Committing ${commitsForDay} times for ${currentDate}...`);
-
-    for (let j = 0; j < commitsForDay; j++) {
-      await makeCommit(currentDate);
+    for (let i = 0; i < commitsForDay; i++) {
+      try {
+        await makeCommit(date.format());
+      } catch (err) {
+        console.error("An error occurred during commit:", err);
+        // You might want to handle this error more gracefully, but for now, we'll continue
+      }
     }
+    date.add(1, 'day');
   }
 
   try {
-    console.log("All commits created. Pushing to main branch...");
-    // FIX: Explicitly pushing to the 'main' branch
-    await simpleGit().push('origin', 'main');
-    console.log("Push successful!");
+    console.log("All commits created. Pushing to remote...");
+    await simpleGit().push("origin", "master");
+    console.log("Push successful! Your GitHub graph is now fully lit. 🌟");
   } catch (err) {
-    console.error("An error occurred:", err);
+    console.error("An error occurred during push:", err);
   }
 };
 
-fillYear();
+fillContributionGraphSolid();
